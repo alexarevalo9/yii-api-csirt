@@ -3,6 +3,8 @@
 namespace app\models;
 
 use Yii;
+use yii\helpers\Console;
+use yii\web\IdentityInterface;
 
 /**
  * This is the model class for table "wp_mapa_csirt".
@@ -29,7 +31,8 @@ use Yii;
  * @property string $longitud
  * @property string $token
  */
-class Csirt extends \yii\db\ActiveRecord
+
+class Csirt extends \yii\db\ActiveRecord implements IdentityInterface
 {
     /**
      * {@inheritdoc}
@@ -45,8 +48,7 @@ class Csirt extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['id', 'nombreCsirt', 'direccion', 'telefono', 'email', 'gpgEmail', 'comunidadObj', 'sitioWeb', 'horario', 'nombreReprePrincipal', 'telefonoReprePrincipal', 'correoReprePrincipal', 'GPGReprePrincipal', 'nombreRepreAlterno', 'telefonoRepreAlterno', 'correoRepreAlterno', 'GPGRepreAlterno', 'latitud', 'longitud', 'token'], 'required'],
-            [['id'], 'integer'],
+            [['nombreCsirt', 'direccion', 'telefono', 'email', 'gpgEmail', 'comunidadObj', 'sitioWeb', 'horario', 'nombreReprePrincipal', 'telefonoReprePrincipal', 'correoReprePrincipal', 'GPGReprePrincipal', 'nombreRepreAlterno', 'telefonoRepreAlterno', 'correoRepreAlterno', 'GPGRepreAlterno', 'latitud', 'longitud', 'token'], 'required'],
             [['nombreCsirt', 'email', 'horario', 'latitud', 'longitud'], 'string', 'max' => 50],
             [['direccion', 'gpgEmail', 'comunidadObj', 'sitioWeb', 'nombreReprePrincipal', 'correoReprePrincipal', 'GPGReprePrincipal', 'nombreRepreAlterno', 'correoRepreAlterno', 'GPGRepreAlterno'], 'string', 'max' => 100],
             [['telefono', 'telefonoReprePrincipal', 'telefonoRepreAlterno'], 'string', 'max' => 20],
@@ -57,8 +59,10 @@ class Csirt extends \yii\db\ActiveRecord
     /**
      * {@inheritdoc}
      */
+
     public function attributeLabels()
     {
+
         return [
             'id' => 'ID',
             'nombreCsirt' => 'Nombre Csirt',
@@ -82,5 +86,59 @@ class Csirt extends \yii\db\ActiveRecord
             'longitud' => 'Longitud',
             'token' => 'Token',
         ];
+    }
+
+    //public function fields()
+    //{
+       // $fields = array_diff(parent::fields(), ['id']); //Nunca devuelve id ni token
+        //return $fields;
+    //}
+
+    /**
+     * Finds an identity by the given ID.
+     *
+     * @param string|int $id the ID to be looked for
+     * @return IdentityInterface|null the identity object that matches the given ID.
+     */
+    public static function findIdentity($id)
+    {
+        return static::findOne($id);
+    }
+
+    /**
+     * Finds an identity by the given token.
+     *
+     * @param string $token the token to be looked for
+     * @return IdentityInterface|null the identity object that matches the given token.
+     */
+    public static function findIdentityByAccessToken($token, $type = null)
+    {
+        //echo var_dump(static::findOne(['token' => $token]));
+        return static::findOne(['token' => $token]);
+    }
+
+    /**
+     * @return int|string current user ID
+     */
+    public function getId()
+    {
+        return $this->id;
+    }
+
+    /**
+     * @return string current user auth key
+     */
+    public function getAuthKey()
+    {
+        return $this->auth_key;
+    }
+
+    /**
+     * @param string $authKey
+     * @return bool if auth key is valid for current user
+     */
+    public function validateAuthKey($authKey)
+    {
+        return $this->getAuthKey() === $authKey;
     }
 }

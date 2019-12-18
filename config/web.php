@@ -17,14 +17,17 @@ $config = [
             'cookieValidationKey' => 'WwKZzWapocURwZmPPw-dCP50w0UcxKmw',
             'parsers' => [
                 'application/json' => 'yii\web\JsonParser',
-            ]
+            ],
+            'enableCsrfCookie' => false
         ],
         'cache' => [
             'class' => 'yii\caching\FileCache',
         ],
         'user' => [
-            'identityClass' => 'app\models\User',
-            'enableAutoLogin' => true,
+            'identityClass' => 'app\models\Csirt',
+            //'enableAutoLogin' => true,
+            'enableSession' => false,
+            'enableAutoLogin' => true
         ],
         'errorHandler' => [
             'errorAction' => 'site/error',
@@ -52,11 +55,17 @@ $config = [
             'enableStrictParsing' => true,
             'showScriptName' => false,
             'rules' => [
-                ['class' => 'yii\rest\UrlRule', 'controller' => 'csirt'],
+                // ['class' => 'yii\rest\UrlRule', 'controller' => 'csirt'],
+                [
+                    'class' => 'yii\rest\UrlRule',
+                    'controller' => ['csirt'],
+                    'pluralize' => false,
+                ]
             ],
         ],
+
     ],
-    
+
     'params' => $params,
 ];
 
