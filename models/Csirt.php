@@ -31,7 +31,6 @@ use yii\web\IdentityInterface;
  * @property string $longitud
  * @property string $token
  */
-
 class Csirt extends \yii\db\ActiveRecord implements IdentityInterface
 {
     /**
@@ -88,12 +87,13 @@ class Csirt extends \yii\db\ActiveRecord implements IdentityInterface
         ];
     }
 
-    //public function fields()
-    //{
-       // $fields = array_diff(parent::fields(), ['id']); //Nunca devuelve id ni token
-        //return $fields;
-    //}
-
+    /*
+    public function fields()
+    {
+        $fields = array_diff(parent::fields(), ['id', '']); //Nunca devuelve id ni token
+        return $fields;
+    }
+*/
     /**
      * Finds an identity by the given ID.
      *

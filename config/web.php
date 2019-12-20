@@ -18,6 +18,7 @@ $config = [
             'parsers' => [
                 'application/json' => 'yii\web\JsonParser',
             ],
+
             'enableCsrfCookie' => false
         ],
         'cache' => [
@@ -25,7 +26,6 @@ $config = [
         ],
         'user' => [
             'identityClass' => 'app\models\Csirt',
-            //'enableAutoLogin' => true,
             'enableSession' => false,
             'enableAutoLogin' => true
         ],
@@ -48,6 +48,7 @@ $config = [
                 ],
             ],
         ],
+
         'db' => $db,
 
         'urlManager' => [
@@ -55,7 +56,6 @@ $config = [
             'enableStrictParsing' => true,
             'showScriptName' => false,
             'rules' => [
-                // ['class' => 'yii\rest\UrlRule', 'controller' => 'csirt'],
                 [
                     'class' => 'yii\rest\UrlRule',
                     'controller' => ['csirt'],
