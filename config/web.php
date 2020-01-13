@@ -11,10 +11,16 @@ $config = [
         '@bower' => '@vendor/bower-asset',
         '@npm'   => '@vendor/npm-asset',
     ],
+    'modules' => [
+        'v1' => [
+            'basePath' => '@app/modules/v1',
+            'class' => 'app\modules\v1\Module',
+        ],
+    ],
     'components' => [
         'request' => [
             // !!! insert a secret key in the following (if it is empty) - this is required by cookie validation
-            'cookieValidationKey' => 'WwKZzWapocURwZmPPw-dCP50w0UcxKmw',
+            //'cookieValidationKey' => 'WwKZzWapocURwZmPPw-dCP50w0UcxKmw',
             'parsers' => [
                 'application/json' => 'yii\web\JsonParser',
             ],
@@ -25,13 +31,14 @@ $config = [
             'class' => 'yii\caching\FileCache',
         ],
         'user' => [
-            'identityClass' => 'app\models\Csirt',
+            'identityClass' => 'app\models\User',
             'enableSession' => false,
-            'enableAutoLogin' => true
+            'loginUrl' => null
+            //'enableAutoLogin' => false
         ],
-        'errorHandler' => [
+        /*'errorHandler' => [
             'errorAction' => 'site/error',
-        ],
+        ],*/
         'mailer' => [
             'class' => 'yii\swiftmailer\Mailer',
             // send all mails to a file by default. You have to set
@@ -58,7 +65,7 @@ $config = [
             'rules' => [
                 [
                     'class' => 'yii\rest\UrlRule',
-                    'controller' => ['csirt'],
+                    'controller' => ['v1/csirt'],
                     'pluralize' => false,
                 ]
             ],

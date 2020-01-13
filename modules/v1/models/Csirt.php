@@ -1,6 +1,6 @@
 <?php
 
-namespace app\models;
+namespace app\modules\v1\models;
 
 use Yii;
 use yii\helpers\Console;
@@ -141,4 +141,10 @@ class Csirt extends \yii\db\ActiveRecord implements IdentityInterface
     {
         return $this->getAuthKey() === $authKey;
     }
+
+    /*
+     *  curl -X POST "http://csirt-api.test/csirt?token=ABCDEF" --header "Content-Type: application/json" --data-binary @datos.json
+     *  curl -X PUT "http://csirt-api.test/csirt/1?token=ABCDEF" --header "Content-Type: application/json" --data-binary @datos2.json
+     *  curl -X GET "http://csirt-api.test/csirt?token=ABCDEF"
+     * */
 }

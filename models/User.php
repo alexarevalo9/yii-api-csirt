@@ -1,53 +1,94 @@
 <?php
 
 namespace app\models;
+use Yii;
+use yii\filters\RateLimitInterface;
+use yii\web\IdentityInterface;
+use yii\behaviors\TimestampBehavior;
 
-class User extends \yii\base\BaseObject implements \yii\web\IdentityInterface
+class User extends \yii\db\ActiveRecord implements IdentityInterface, RateLimitInterface
 {
-    public $id;
-    public $username;
-    public $password;
-    public $authKey;
-    public $accessToken;
-
-    private static $users = [
-        '100' => [
-            'id' => '100',
-            'username' => 'admin',
-            'password' => 'admin',
-            'authKey' => 'test100key',
-            'accessToken' => '100-token',
-        ],
-        '101' => [
-            'id' => '101',
-            'username' => 'demo',
-            'password' => 'demo',
-            'authKey' => 'test101key',
-            'accessToken' => '101-token',
-        ],
-    ];
-
+    const STATUS_DELETED = 0;
+    const STATUS_ACTIVE = 10;
 
     /**
-     * {@inheritdoc}
+     * @return string the name of the db table associated with this ActiveRecord class.
      */
-    public static function findIdentity($id)
+    public static function tableName()
     {
-        return isset(self::$users[$id]) ? new static(self::$users[$id]) : null;
+        return 'user';
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
+     */
+    public function behaviors()
+    {
+        return [
+            TimestampBehavior::className(),
+        ];
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function rules()
+    {
+        return [
+            ['status', 'default', 'value' => self::STATUS_ACTIVE],
+            ['status', 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_DELETED]],
+        ];
+    }
+
+    /**
+     * @return array list of attribute names.
+     */
+    public function attributes()
+    {
+        return ['id', 'username', 'password', 'access_token', 'auth_key'];
+    }
+
+    /**
+     * When using API auth by bearer token, find which user the token belongs to
+     *
+     * @param string $token
+     * @param string $type
+     * return app\models\User
      */
     public static function findIdentityByAccessToken($token, $type = null)
     {
-        foreach (self::$users as $user) {
-            if ($user['accessToken'] === $token) {
-                return new static($user);
-            }
-        }
+        return static::findOne(['auth_key' => $token]);
+    }
 
-        return null;
+    /**
+     * @inheritdoc
+     */
+    public function getAuthKey() {
+        return $this->auth_key;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getId() {
+        return $this->getPrimaryKey();
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function validateAuthKey($authKey) {
+        return $this->getAuthKey() === $authKey;
+    }
+
+    /**
+     * Find a user by their unique id
+     *
+     * @param string $id
+     * return app\models\User
+     */
+    public static function findIdentity($id) {
+        return static::findOne(['id' => $id, 'status' => self::STATUS_ACTIVE]);
     }
 
     /**
@@ -58,37 +99,39 @@ class User extends \yii\base\BaseObject implements \yii\web\IdentityInterface
      */
     public static function findByUsername($username)
     {
-        foreach (self::$users as $user) {
-            if (strcasecmp($user['username'], $username) === 0) {
-                return new static($user);
-            }
+        return static::findOne(['username' => $username, 'status' => self::STATUS_ACTIVE]);
+    }
+
+    /**
+     * Finds user by password reset token
+     *
+     * @param string $token password reset token
+     * @return static|null
+     */
+    public static function findByPasswordResetToken($token)
+    {
+        if (!static::isPasswordResetTokenValid($token)) {
+            return null;
         }
 
-        return null;
+        return static::findOne(['password_reset_token' => $token, 'status' => self::STATUS_ACTIVE,]);
     }
 
     /**
-     * {@inheritdoc}
+     * Finds out if password reset token is valid
+     *
+     * @param string $token password reset token
+     * @return bool
      */
-    public function getId()
+    public static function isPasswordResetTokenValid($token)
     {
-        return $this->id;
-    }
+        if (empty($token)) {
+            return false;
+        }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getAuthKey()
-    {
-        return $this->authKey;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function validateAuthKey($authKey)
-    {
-        return $this->authKey === $authKey;
+        $timestamp = (int) substr($token, strrpos($token, '_') + 1);
+        $expire = Yii::$app->params['user.passwordResetTokenExpire'];
+        return $timestamp + $expire >= time();
     }
 
     /**
@@ -99,6 +142,84 @@ class User extends \yii\base\BaseObject implements \yii\web\IdentityInterface
      */
     public function validatePassword($password)
     {
-        return $this->password === $password;
+        return Yii::$app->security->validatePassword($password, $this->password_hash);
+    }
+
+    /**
+     * Generates password hash from password and sets it to the model
+     *
+     * @param string $password
+     */
+    public function setPassword($password)
+    {
+        $this->password_hash = Yii::$app->security->generatePasswordHash($password);
+    }
+
+    /**
+     * Generates "remember me" authentication key
+     */
+    public function generateAuthKey()
+    {
+        $this->auth_key = Yii::$app->security->generateRandomString();
+    }
+
+    /**
+     * Generates new password reset token
+     */
+    public function generatePasswordResetToken()
+    {
+        $this->password_reset_token = Yii::$app->security->generateRandomString() . '_' . time();
+    }
+
+    /**
+     * Removes password reset token
+     */
+    public function removePasswordResetToken()
+    {
+        $this->password_reset_token = null;
+    }
+
+    //https://www.yiiframework.com/doc/guide/2.0/en/rest-rate-limiting
+    /**
+     * Lets the system know how many requests are allowed for this user in a given period of time
+     *
+     * @param yii\web\Request $request
+     * @param string $action
+     * @return array
+     */
+    public function getRateLimit($request, $action)
+    {
+        // Tuple is num_requests, period_in_seconds
+        return [$this->rate_limit, 1]; // $rateLimit requests per second
+    }
+
+    /**
+     * Return the current rate limit values for this user
+     *
+     * @param yii\web\Request $request
+     * @param string $action
+     * @return array
+     */
+    public function loadAllowance($request, $action)
+    {
+        return [$this->allowance, $this->allowance_updated_at];
+    }
+
+    /**
+     * Update this user's rate limit allowances based on a request.
+     *
+     * Note, this method can use the request and action to make decisions about
+     * if and what allowance values to save
+     *
+     * @param yii\web\Request $request The api request
+     * @param string $action The action being called
+     * @param int $allowance The updated allowance amount
+     * @param int $timestamp The unix timestamp of the request
+     */
+    public function saveAllowance($request, $action, $allowance, $timestamp)
+    {
+        $this->allowance = $allowance;
+        $this->allowance_updated_at = $timestamp;
+        $this->save();
     }
 }

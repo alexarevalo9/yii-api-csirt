@@ -1,9 +1,11 @@
 <?php
 
-namespace app\controllers;
+namespace app\modules\v1\controllers;
 
+use app\modules\v1\models\Csirt;
 use Yii;
 use yii\data\ActiveDataProvider;
+use yii\filters\auth\HttpBearerAuth;
 use yii\filters\ContentNegotiator;
 use yii\rest\ActiveController;
 use yii\filters\auth\QueryParamAuth;
@@ -17,22 +19,29 @@ class CsirtController extends ActiveController
     public function behaviors()
     {
         $behaviors = parent::behaviors();
+        // remove authentication filter if there is one
+        unset($behaviors['authenticator']);
+
+        // add CORS filter before authentication
+        $behaviors['corsFilter'] = [
+            'class' => \yii\filters\Cors::className(),
+        ];
+
+
         $behaviors['authenticator'] = [
-            'tokenParam' => 'token',
-            'class' => QueryParamAuth::className(),
+            'class' => HttpBearerAuth::className(),
             'except' => ['options', 'authenticate'],
         ];
+
+        /*
 
         $behaviors['contentNegotiator'] = [
             'class' => ContentNegotiator::className(),
             'formats' => [
-                'application/json' => Response::FORMAT_JSON,
+               'application/json' => Response::FORMAT_JSON,
                 //'application/xml' => Response::FORMAT_XML,
-
             ],
-
-
-        ];
+        ];*/
         return $behaviors;
     }
 
@@ -48,6 +57,7 @@ class CsirtController extends ActiveController
     public function indexProvider()
     {
         $uid = Yii::$app->user->identity->id;
-        return new ActiveDataProvider(['query' => \app\models\Csirt::find()->where('id=' . $uid)->orderBy('id')]);
+        return new ActiveDataProvider(['query' => Csirt::find()->where('id=' . $uid)->orderBy('id')]);
     }
+
 }
