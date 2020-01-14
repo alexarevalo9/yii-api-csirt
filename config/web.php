@@ -36,9 +36,9 @@ $config = [
             'loginUrl' => null
             //'enableAutoLogin' => false
         ],
-        /*'errorHandler' => [
+        'errorHandler' => [
             'errorAction' => 'site/error',
-        ],*/
+        ],
         'mailer' => [
             'class' => 'yii\swiftmailer\Mailer',
             // send all mails to a file by default. You have to set
@@ -60,7 +60,7 @@ $config = [
 
         'urlManager' => [
             'enablePrettyUrl' => true,
-            'enableStrictParsing' => true,
+            //'enableStrictParsing' => true,
             'showScriptName' => false,
             'rules' => [
                 [

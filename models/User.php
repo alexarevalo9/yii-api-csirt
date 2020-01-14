@@ -10,6 +10,7 @@ class User extends \yii\db\ActiveRecord implements IdentityInterface, RateLimitI
 {
     const STATUS_DELETED = 0;
     const STATUS_ACTIVE = 10;
+    private $password_hash = "";
 
     /**
      * @return string the name of the db table associated with this ActiveRecord class.
@@ -45,7 +46,7 @@ class User extends \yii\db\ActiveRecord implements IdentityInterface, RateLimitI
      */
     public function attributes()
     {
-        return ['id', 'username', 'password', 'access_token', 'auth_key'];
+        return ['id', 'username', 'password', 'access_token', 'auth_key', 'email', 'status', 'created_at', 'updated_at'];
     }
 
     /**
@@ -142,7 +143,11 @@ class User extends \yii\db\ActiveRecord implements IdentityInterface, RateLimitI
      */
     public function validatePassword($password)
     {
-        return Yii::$app->security->validatePassword($password, $this->password_hash);
+        return Yii::$app->security->validatePassword($password, '$2y$13$tJZ7JQOiY4c2HHoy1x6f7e8kONvzaKHOyTv6KUBNPE0yoPzpjaW');
+        /*if (crypt($password, $this->password) == $this->password)
+        {
+            return $password === $password;
+        }*/
     }
 
     /**
