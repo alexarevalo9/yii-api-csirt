@@ -33,8 +33,8 @@ $config = [
         'user' => [
             'identityClass' => 'app\models\User',
             'enableSession' => false,
-            'loginUrl' => null
-            //'enableAutoLogin' => false
+            //'loginUrl' => null
+            'enableAutoLogin' => true
         ],
         'errorHandler' => [
             'errorAction' => 'site/error',
@@ -67,7 +67,15 @@ $config = [
                     'class' => 'yii\rest\UrlRule',
                     'controller' => ['v1/csirt'],
                     'pluralize' => false,
-                ]
+                ],
+                [
+                    'class' => 'yii\rest\UrlRule',
+                    'controller' => 'user',
+                    'extraPatterns'=>[
+                        'POST login'=>'login',
+                    ],
+                    'pluralize' => false,
+                ],
             ],
         ],
 

@@ -103,6 +103,12 @@ class User extends \yii\db\ActiveRecord implements IdentityInterface, RateLimitI
         return static::findOne(['username' => $username, 'status' => self::STATUS_ACTIVE]);
     }
 
+    public function generateAccessToken()
+    {
+        $this->access_token=Yii::$app->security->generateRandomString();
+        return $this->access_token;
+    }
+
     /**
      * Finds user by password reset token
      *

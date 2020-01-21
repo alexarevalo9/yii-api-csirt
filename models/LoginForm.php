@@ -16,6 +16,7 @@ class LoginForm extends Model
     public $username;
     public $password;
     public $rememberMe = true;
+    Const EXPIRE_TIME = 604800; //token expiration time, 7 days valid
 
     private $_user = false;
 
@@ -59,8 +60,21 @@ class LoginForm extends Model
      */
     public function login()
     {
+        /*
         if ($this->validate()) {
             return Yii::$app->user->login($this->getUser(), $this->rememberMe ? 3600*24*30 : 0);
+        }
+        return false;*/
+
+        if ($this->validate()) {
+            //return Yii::$app->user->login($this->getUser(), $this->rememberMe ? 3600 * 24 * 30 : 0);
+            if ($this->getUser()) {
+                $access_token = $this->user->generateAccessToken();
+                $this->user->expire_at = time() + static::EXPIRE_TIME;
+                $this->user->save();
+                Yii::$app->user->login($this->user, static::EXPIRE_TIME);
+                return $access_token;
+            }
         }
         return false;
     }

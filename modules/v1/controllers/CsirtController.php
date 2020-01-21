@@ -2,9 +2,6 @@
 
 namespace app\modules\v1\controllers;
 
-use app\modules\v1\models\Csirt;
-use Yii;
-use yii\data\ActiveDataProvider;
 use yii\filters\auth\HttpBearerAuth;
 use yii\filters\ContentNegotiator;
 use yii\rest\ActiveController;
@@ -13,7 +10,7 @@ use yii\web\Response;
 
 class CsirtController extends ActiveController
 {
-    public $modelClass = 'app\models\Csirt';
+    public $modelClass = 'app\modules\v1\models\Csirt';
 
     //Returns a list of behaviors that this component should behave as.
     public function behaviors()
@@ -45,6 +42,8 @@ class CsirtController extends ActiveController
         return $behaviors;
     }
 
+/*
+
     public function actions()
     {
         $actions = parent::actions();
@@ -59,5 +58,12 @@ class CsirtController extends ActiveController
         $uid = Yii::$app->user->identity->id;
         return new ActiveDataProvider(['query' => Csirt::find()->where('id=' . $uid)->orderBy('id')]);
     }
+
+    public function actionRequest($id){
+
+        echo $id;
+
+    }
+*/
 
 }
