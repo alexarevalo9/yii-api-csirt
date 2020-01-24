@@ -42,6 +42,10 @@ class CsirtController extends ActiveController
         return $behaviors;
     }
 
+    public function actionGetcsirt(){
+
+    }
+
 /*
 
     public function actions()

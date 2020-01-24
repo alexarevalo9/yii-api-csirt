@@ -1,19 +1,16 @@
 <?php
 
 namespace app\models;
+
 use Yii;
-use yii\filters\RateLimitInterface;
+use yii\db\ActiveRecord;
+use yii\db\StaleObjectException;
 use yii\web\IdentityInterface;
-use yii\behaviors\TimestampBehavior;
 
-class User extends \yii\db\ActiveRecord implements IdentityInterface, RateLimitInterface
+class User extends ActiveRecord implements IdentityInterface
 {
-    const STATUS_DELETED = 0;
-    const STATUS_ACTIVE = 10;
-    private $password_hash = "";
-
     /**
-     * @return string the name of the db table associated with this ActiveRecord class.
+     * @return string the name of the db table associated with this model class.
      */
     public static function tableName()
     {
@@ -21,32 +18,34 @@ class User extends \yii\db\ActiveRecord implements IdentityInterface, RateLimitI
     }
 
     /**
-     * @inheritdoc
-     */
-    public function behaviors()
-    {
-        return [
-            TimestampBehavior::className(),
-        ];
-    }
-
-    /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function rules()
     {
         return [
-            ['status', 'default', 'value' => self::STATUS_ACTIVE],
-            ['status', 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_DELETED]],
+            [['status'], 'integer'],
+            [['username'], 'string', 'max' => 50],
+            [['email'], 'string', 'max' => 80],
+            [['password', 'auth_key', 'access_token', 'created_at', 'updated_at'], 'string', 'max' => 250],
         ];
     }
 
     /**
-     * @return array list of attribute names.
+     * {@inheritdoc}
      */
-    public function attributes()
+    public function attributeLabels()
     {
-        return ['id', 'username', 'password', 'access_token', 'auth_key', 'email', 'status', 'created_at', 'updated_at'];
+        return [
+            'id' => 'ID',
+            'username' => 'Username',
+            'email' => 'Email',
+            'password' => 'Password',
+            'auth_key' => 'Auth Key',
+            'access_token' => 'Access Token',
+            'status' => 'Status',
+            'created_at' => 'Created At',
+            'updated_at' => 'Updated At',
+        ];
     }
 
     /**
@@ -54,7 +53,7 @@ class User extends \yii\db\ActiveRecord implements IdentityInterface, RateLimitI
      *
      * @param string $token
      * @param string $type
-     * return app\models\User
+     * @return User|null
      */
     public static function findIdentityByAccessToken($token, $type = null)
     {
@@ -64,21 +63,24 @@ class User extends \yii\db\ActiveRecord implements IdentityInterface, RateLimitI
     /**
      * @inheritdoc
      */
-    public function getAuthKey() {
+    public function getAuthKey()
+    {
         return $this->auth_key;
     }
 
     /**
      * @inheritdoc
      */
-    public function getId() {
+    public function getId()
+    {
         return $this->getPrimaryKey();
     }
 
     /**
      * @inheritdoc
      */
-    public function validateAuthKey($authKey) {
+    public function validateAuthKey($authKey)
+    {
         return $this->getAuthKey() === $authKey;
     }
 
@@ -87,150 +89,58 @@ class User extends \yii\db\ActiveRecord implements IdentityInterface, RateLimitI
      *
      * @param string $id
      * return app\models\User
+     * @return User|null
      */
-    public static function findIdentity($id) {
-        return static::findOne(['id' => $id, 'status' => self::STATUS_ACTIVE]);
+    public static function findIdentity($id)
+    {
+        return static::findOne(['id' => $id]);
     }
 
     /**
-     * Finds user by username
+     * Validate User by email and password
      *
-     * @param string $username
-     * @return static|null
-     */
-    public static function findByUsername($username)
-    {
-        return static::findOne(['username' => $username, 'status' => self::STATUS_ACTIVE]);
-    }
-
-    public function generateAccessToken()
-    {
-        $this->access_token=Yii::$app->security->generateRandomString();
-        return $this->access_token;
-    }
-
-    /**
-     * Finds user by password reset token
-     *
-     * @param string $token password reset token
-     * @return static|null
-     */
-    public static function findByPasswordResetToken($token)
-    {
-        if (!static::isPasswordResetTokenValid($token)) {
-            return null;
-        }
-
-        return static::findOne(['password_reset_token' => $token, 'status' => self::STATUS_ACTIVE,]);
-    }
-
-    /**
-     * Finds out if password reset token is valid
-     *
-     * @param string $token password reset token
+     * @param string $email
+     * @param string $password
      * @return bool
      */
-    public static function isPasswordResetTokenValid($token)
+    public function validateUser($email, $password)
     {
-        if (empty($token)) {
-            return false;
+        $cryptpassword = crypt($password, Yii::$app->params["salt"]);
+        $user = static::findOne(["email" => $email, "password" => $cryptpassword]);
+        if ($user != null) {
+            return $user;
+        } else {
+            return null;
+        }
+    }
+
+
+    /**
+     * Generate authentication token
+     *
+     * @param string $str
+     * @param int $long
+     * @return string|null
+     */
+    public function generateAuthToken($str = '', $long = 0)
+    {
+        $authToken = null;
+        $str = str_split($str);
+        $start = 0;
+        $limit = count($str) - 1;
+        for ($x = 0; $x < $long; $x++) {
+            $authToken .= $str[rand($start, $limit)];
         }
 
-        $timestamp = (int) substr($token, strrpos($token, '_') + 1);
-        $expire = Yii::$app->params['user.passwordResetTokenExpire'];
-        return $timestamp + $expire >= time();
+        return $authToken;
     }
 
-    /**
-     * Validates password
-     *
-     * @param string $password password to validate
-     * @return bool if password provided is valid for current user
-     */
-    public function validatePassword($password)
+    public function saveAuthToken($id, $authToken)
     {
-        return Yii::$app->security->validatePassword($password, '$2y$13$tJZ7JQOiY4c2HHoy1x6f7e8kONvzaKHOyTv6KUBNPE0yoPzpjaW');
-        /*if (crypt($password, $this->password) == $this->password)
-        {
-            return $password === $password;
-        }*/
+        $user = static::findOne($id);
+        $user->auth_key = $authToken;
+        $user->update();
     }
 
-    /**
-     * Generates password hash from password and sets it to the model
-     *
-     * @param string $password
-     */
-    public function setPassword($password)
-    {
-        $this->password_hash = Yii::$app->security->generatePasswordHash($password);
-    }
 
-    /**
-     * Generates "remember me" authentication key
-     */
-    public function generateAuthKey()
-    {
-        $this->auth_key = Yii::$app->security->generateRandomString();
-    }
-
-    /**
-     * Generates new password reset token
-     */
-    public function generatePasswordResetToken()
-    {
-        $this->password_reset_token = Yii::$app->security->generateRandomString() . '_' . time();
-    }
-
-    /**
-     * Removes password reset token
-     */
-    public function removePasswordResetToken()
-    {
-        $this->password_reset_token = null;
-    }
-
-    //https://www.yiiframework.com/doc/guide/2.0/en/rest-rate-limiting
-    /**
-     * Lets the system know how many requests are allowed for this user in a given period of time
-     *
-     * @param yii\web\Request $request
-     * @param string $action
-     * @return array
-     */
-    public function getRateLimit($request, $action)
-    {
-        // Tuple is num_requests, period_in_seconds
-        return [$this->rate_limit, 1]; // $rateLimit requests per second
-    }
-
-    /**
-     * Return the current rate limit values for this user
-     *
-     * @param yii\web\Request $request
-     * @param string $action
-     * @return array
-     */
-    public function loadAllowance($request, $action)
-    {
-        return [$this->allowance, $this->allowance_updated_at];
-    }
-
-    /**
-     * Update this user's rate limit allowances based on a request.
-     *
-     * Note, this method can use the request and action to make decisions about
-     * if and what allowance values to save
-     *
-     * @param yii\web\Request $request The api request
-     * @param string $action The action being called
-     * @param int $allowance The updated allowance amount
-     * @param int $timestamp The unix timestamp of the request
-     */
-    public function saveAllowance($request, $action, $allowance, $timestamp)
-    {
-        $this->allowance = $allowance;
-        $this->allowance_updated_at = $timestamp;
-        $this->save();
-    }
 }

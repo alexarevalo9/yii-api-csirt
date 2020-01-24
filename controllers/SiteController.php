@@ -168,11 +168,6 @@ class SiteController extends Controller
                 $table->email = $model->email;
                 //Encriptamos el password
                 $table->password = crypt($model->password, Yii::$app->params["salt"]);
-                //Creamos una cookie para autenticar al usuario cuando decida recordar la sesión, esta misma
-                //clave será utilizada para activar el usuario
-                $table->auth_key = $this->randKey("abcdef0123456789", 50);
-                //Creamos un token de acceso único para el usuario
-                $table->access_token = $this->randKey("abcdef0123456789", 50);
 
                 //Si el registro es guardado correctamente
                 if ($table->insert()) {
@@ -187,7 +182,7 @@ class SiteController extends Controller
                     $model->password = null;
                     $model->password_repeat = null;
 
-                    $msg = "En hora buena ";
+                    $msg = "Registro Exitoso";
                 } else {
                     $msg = "Ha ocurrido un error al llevar a cabo tu registro";
                 }

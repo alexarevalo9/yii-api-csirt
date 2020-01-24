@@ -61,7 +61,6 @@ class Csirt extends \yii\db\ActiveRecord implements IdentityInterface
 
     public function attributeLabels()
     {
-
         return [
             'id' => 'ID',
             'nombreCsirt' => 'Nombre Csirt',

@@ -1,0 +1,183 @@
+<?php
+
+class model_resource{
+
+    const STATUS_DELETED = 0;
+    const STATUS_ACTIVE = 10;
+    private $password_hash = "";
+    /**
+     * Generates password hash from password and sets it to the model
+     *
+     * @param string $password
+     */
+    public function setPassword($password)
+    {
+        $this->password_hash = Yii::$app->security->generatePasswordHash($password);
+    }
+
+    /**
+     * Generates "remember me" authentication key
+     */
+    public function generateAuthKey()
+    {
+        $this->auth_key = Yii::$app->security->generateRandomString();
+    }
+
+    /**
+     * Generates new password reset token
+     */
+    public function generatePasswordResetToken()
+    {
+        $this->password_reset_token = Yii::$app->security->generateRandomString() . '_' . time();
+    }
+
+
+    //https://www.yiiframework.com/doc/guide/2.0/en/rest-rate-limiting
+
+    /**
+     * Lets the system know how many requests are allowed for this user in a given period of time
+     *
+     * @param yii\web\Request $request
+     * @param string $action
+     * @return array
+     */
+    public function getRateLimit($request, $action)
+    {
+        // Tuple is num_requests, period_in_seconds
+        return [$this->rate_limit, 1]; // $rateLimit requests per second
+    }
+
+    /**
+     * Return the current rate limit values for this user
+     *
+     * @param yii\web\Request $request
+     * @param string $action
+     * @return array
+     */
+    public function loadAllowance($request, $action)
+    {
+        return [$this->allowance, $this->allowance_updated_at];
+    }
+
+    /**
+     * Update this user's rate limit allowances based on a request.
+     *
+     * Note, this method can use the request and action to make decisions about
+     * if and what allowance values to save
+     *
+     * @param yii\web\Request $request The api request
+     * @param string $action The action being called
+     * @param int $allowance The updated allowance amount
+     * @param int $timestamp The unix timestamp of the request
+     */
+    public function saveAllowance($request, $action, $allowance, $timestamp)
+    {
+        $this->allowance = $allowance;
+        $this->allowance_updated_at = $timestamp;
+        $this->save();
+    }
+
+
+
+    /**
+     * Removes password reset token
+     */
+    public function removePasswordResetToken()
+    {
+        $this->password_reset_token = null;
+    }
+
+    /**
+     * Validates password
+     *
+     * @param string $password password to validate
+     * @return bool if password provided is valid for current user
+     */
+    public function validatePassword($password)
+    {
+        return Yii::$app->security->validatePassword($password, '$2y$13$tJZ7JQOiY4c2HHoy1x6f7e8kONvzaKHOyTv6KUBNPE0yoPzpjaW');
+        /*if (crypt($password, $this->password) == $this->password)
+        {
+            return $password === $password;
+        }*/
+    }
+
+    /**
+     * Finds user by password reset token
+     *
+     * @param string $token password reset token
+     * @return static|null
+     */
+    public static function findByPasswordResetToken($token)
+    {
+        if (!static::isPasswordResetTokenValid($token)) {
+            return null;
+        }
+
+        return static::findOne(['password_reset_token' => $token, 'status' => self::STATUS_ACTIVE,]);
+    }
+
+    /**
+     * Finds out if password reset token is valid
+     *
+     * @param string $token password reset token
+     * @return bool
+     */
+    public static function isPasswordResetTokenValid($token)
+    {
+        if (empty($token)) {
+            return false;
+        }
+
+        $timestamp = (int)substr($token, strrpos($token, '_') + 1);
+        $expire = Yii::$app->params['user.passwordResetTokenExpire'];
+        return $timestamp + $expire >= time();
+    }
+
+    public function generateAccessToken()
+    {
+        $this->access_token = Yii::$app->security->generateRandomString();
+        return $this->access_token;
+    }
+
+    /**
+     * Finds user by username
+     *
+     * @param string $username
+     * @return static|null
+     */
+
+    public static function findByUsername($username)
+    {
+        return static::findOne(['username' => $username, 'status' => self::STATUS_ACTIVE]);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function behaviors()
+    {
+        return [
+            TimestampBehavior::className(),
+        ];
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function rules()
+    {
+        return [
+            ['status', 'default', 'value' => self::STATUS_ACTIVE],
+            ['status', 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_DELETED]],
+        ];
+    }
+
+    /**
+     * @return array list of attribute names.
+     */
+    public function attributes()
+    {
+        return ['id', 'username', 'password', 'access_token', 'auth_key', 'email', 'status', 'created_at', 'updated_at'];
+    }
+}
