@@ -181,10 +181,9 @@ class SiteController extends Controller
                     $model->email = null;
                     $model->password = null;
                     $model->password_repeat = null;
-
-                    $msg = "Registro Exitoso";
+                    echo '<script type="text/javascript">alert("Registro Exitoso");window.location.href="/site/index";</script>';
                 } else {
-                    $msg = "Ha ocurrido un error al llevar a cabo tu registro";
+                    echo '<script type="text/javascript">alert("Ha ocurrido un error al llevar a cabo tu registro");</script>';
                 }
             } else {
                 $model->getErrors();
