@@ -4,6 +4,7 @@
 namespace app\controllers;
 
 use app\models\User;
+use Yii;
 use yii\rest\ActiveController;
 
 class UserController extends ActiveController
@@ -26,8 +27,12 @@ class UserController extends ActiveController
      * @param string $password
      * @return array
      */
-    public function actionLogin($email, $password)
+    public function actionLogin()
     {
+        $bodydata = Yii::$app->getRequest()->getBodyParams();
+        $email = $bodydata['email'];
+        $password = $bodydata['password'];
+
         $model = new User;
         $data = $model->validateUser($email, $password);
 
