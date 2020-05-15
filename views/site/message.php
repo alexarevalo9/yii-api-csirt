@@ -1,8 +1,9 @@
 <?php
 
+
 use yii\helpers\Html;
 
-$this->title = 'Verification';
+$this->title = 'Message';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="site-about">

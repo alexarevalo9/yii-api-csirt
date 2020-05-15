@@ -4,6 +4,9 @@ namespace app\controllers;
 
 use app\models\FormRegister;
 use app\models\User;
+use Swift_Plugins_LoggerPlugin;
+use Swift_Plugins_Loggers_ArrayLogger;
+use Swift_Plugins_Loggers_EchoLogger;
 use Yii;
 use yii\filters\AccessControl;
 use yii\web\Controller;
@@ -141,7 +144,9 @@ class SiteController extends Controller
         return $key;
     }
 
-
+    /**
+     * Displays Register Page.
+     */
     public function actionRegister()
     {
         //Creamos la instancia con el model de validación
@@ -166,26 +171,28 @@ class SiteController extends Controller
                 $table = new User;
                 $table->username = $model->username;
                 $table->email = $model->email;
+                $table->email_hash = md5(rand(0, 1000));
 
                 //Encriptamos el password
                 $table->password = crypt($model->password, Yii::$app->params["salt"]);
 
                 //Si el registro es guardado correctamente
-                if ($table->insert()) {
+                if (!$table->insert()) {
                     //Nueva consulta para obtener el id del usuario
                     //Para confirmar al usuario se requiere su id y su authKey
                     $user = $table->find()->where(["email" => $model->email])->one();
                     $id = urlencode($user->id);
                     $authKey = urlencode($user->authKey);
 
-                    SiteController::sendEmail($model->email, $model->username);
+                    $this->sendEmail($table->email, $table->username, $table->email_hash);
 
                     $model->username = null;
                     $model->email = null;
                     $model->password = null;
                     $model->password_repeat = null;
 
-                    echo '<script type="text/javascript">alert("Registro Exitoso");window.location.href="/site/index";</script>';
+                    $this->redirect(['site/message?email=' . $table->email]);
+
                 } else {
                     echo '<script type="text/javascript">alert("Ha ocurrido un error al llevar a cabo tu registro");</script>';
                 }
@@ -196,33 +203,55 @@ class SiteController extends Controller
         return $this->render("register", ["model" => $model, "msg" => $msg]);
     }
 
-    public static function sendEmail($email, $username)
+    public function actionVerification($email, $hash)
     {
-        $hash = md5(rand(0, 1000));
-        $message =  '<div align="center" style="border-style:solid; border-width:thin; border-color:#dadce0; border-radius:8px; padding:40px 20px; width: 600px">'.
-                        '<h1 style="color: #000000">Por favor verifique su correo electrónico</h1>'.
-                        '<h2 style="color: #000000">Saludos '.$username.',</h2>'.
-                        '<h3 style="color: #000000">Necesitamos verificar su dirección de correo electrónico antes de activar su cuenta en CSIRT API.</h3>'.'<br><br>'.
-                        '<div>'.
-                            '<a style=\'background-color:#447fb4;color:#ffffff;display:inline-block;line-height:44px;text-align:center;text-decoration:none;width:180px;border-radius:4px\'
-                            target=\'_blank\' href=\'http://csirt-api.test/site/verification?email='.$email.'&hash='.$hash.'\'>
+        $table = new User;
+        $message = null;
+        $user = $table->find()->where(["email" => $email, "email_hash" => $hash])->one();
+
+        if ($user && $user->active == 0) {
+            $user->updateAttributes(['active' => 1]);
+            $message = 'Su cuenta <b style="color: #0a73bb">' . $user->email . '</b> ha sido verificada exitosamente';
+        } else if ($user && $user->active == 1) {
+            $message = 'Su cuenta <b style="color: #0a73bb">' . $user->email . '</b> ya ha sido verificada exitosamente';
+        } else {
+            $message = 'No se ha podido verificar su cuenta';
+        }
+        return $this->render('verification', ['message' => $message]);
+    }
+
+    public function actionMessage($email)
+    {
+        $table = new User;
+        $msg = null;
+
+        $user = $table->find()->where(["email" => $email])->one();
+        $user && $user->active == 0 ? $msg = 'Se ha enviado un correo de verificación a <b style="color: #0a73bb">' . $user->email . '</b> por favor revisar su correo electrónico.' : $this->redirect(['/']);;
+
+        return $this->render('message', ['message' => $msg]);
+    }
+
+    protected function sendEmail($email, $username, $hash)
+    {
+        $message = '<div align="center" style="border-style:solid; border-width:thin; border-color:#dadce0; border-radius:8px; padding:40px 20px; width: 600px">' .
+            '<h1 style="color: #000000">Por favor verifique su correo electrónico</h1>' .
+            '<h2 style="color: #000000">Saludos ' . $username . ',</h2>' .
+            '<h3 style="color: #000000">Necesitamos verificar su dirección de correo electrónico antes de activar su cuenta en CSIRT API.</h3>' . '<br><br>' .
+            '<div>' .
+            '<a style=\'background-color:#447fb4;color:#ffffff;display:inline-block;line-height:44px;text-align:center;text-decoration:none;width:180px;border-radius:4px\'
+                            target=\'_blank\' href=\'http://csirt-api.test/site/verification?email=' . $email . '&hash=' . $hash . '\'>
                             VERIFICAR
-                            </a>'.
-                        '</div>'.'<br><br>'.
-                        '<p align="center">Enlace de Verificación: http://csirt-api.test/site/verification?email='.$email.'&hash='.$hash.'<p>'.
-                    '</div>';
+                            </a>' .
+            '</div>' . '<br><br>' .
+            '<p align="center">Enlace de Verificación: <a href="http://csirt-api.test/site/verification?email=' . $email . '&hash=' . $hash . '">http://csirt-api.test/site/verification?email=' . $email . '&hash=' . $hash . '</a></p>' .
+            '</div>';
         //Yii::$app->params['adminEmail']
+
         Yii::$app->mailer->compose()
-            ->setFrom('arevaloalex9@hotmail.com')
+            ->setFrom('csirtcediatest2@outlook.com')
             ->setTo($email)
             ->setSubject('Verifique su correo electrónico CSIRT API')
             ->setHtmlBody($message)
             ->send();
     }
-
-    public function actionVerification()
-    {
-        return $this->render('verification');
-    }
-
 }

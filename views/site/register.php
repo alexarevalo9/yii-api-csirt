@@ -8,6 +8,7 @@ $this->params['breadcrumbs'][] = $this->title;
 ?>
     <h1>Registro</h1>
     <p>Please fill out the following fields to register:</p>
+    <h4><?= $msg; ?></h4>
 
 <?php $form = ActiveForm::begin([
     'method' => 'post',
