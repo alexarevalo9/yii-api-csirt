@@ -106,28 +106,28 @@ class SiteController extends Controller
      *
      * @return Response|string
      */
-    public function actionContact()
-    {
-        $model = new ContactForm();
-        if ($model->load(Yii::$app->request->post()) && $model->contact(Yii::$app->params['adminEmail'])) {
-            Yii::$app->session->setFlash('contactFormSubmitted');
-
-            return $this->refresh();
-        }
-        return $this->render('contact', [
-            'model' => $model,
-        ]);
-    }
+//    public function actionContact()
+//    {
+//        $model = new ContactForm();
+//        if ($model->load(Yii::$app->request->post()) && $model->contact(Yii::$app->params['adminEmail'])) {
+//            Yii::$app->session->setFlash('contactFormSubmitted');
+//
+//            return $this->refresh();
+//        }
+//        return $this->render('contact', [
+//            'model' => $model,
+//        ]);
+//    }
 
     /**
      * Displays about page.
      *
      * @return string
      */
-    public function actionAbout()
-    {
-        return $this->render('about');
-    }
+//    public function actionAbout()
+//    {
+//        return $this->render('about');
+//    }
 
     private function randKey($str = '', $long = 0)
     {
@@ -245,7 +245,7 @@ class SiteController extends Controller
         //Yii::$app->params['adminEmail']
 
         Yii::$app->mailer->compose()
-            ->setFrom('csirtcediatest2@outlook.com')
+            ->setFrom('arevaloalex9@hotmail.com')
             ->setTo($email)
             ->setSubject('Verifique su correo electrónico CSIRT API')
             ->setHtmlBody($message)

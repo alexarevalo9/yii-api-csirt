@@ -57,13 +57,12 @@ $config = [
                 'encryption' => 'tls',
                 'host' => 'smtp-mail.outlook.com',
                 'port' => '587',
-                'username' => 'csirtcediatest2@outlook.com',
-                'password' => 'metallica2018',
+                'username' => 'arevaloalex9@hotmail.com',
+                'password' => 'metallica2012',
 //                'username' => Yii::$app->params['adminEmail'],
 //                'password' => Yii::$app->params['passwordEmail'],
             ],
-            'useFileTransport' => true,
-
+            'useFileTransport' => false,
         ],
         'log' => [
             'traceLevel' => YII_DEBUG ? 3 : 0,

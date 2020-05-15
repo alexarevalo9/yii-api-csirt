@@ -32,19 +32,22 @@ class UserController extends ActiveController
         $bodydata = Yii::$app->getRequest()->getBodyParams();
         $email = $bodydata['email'];
         $password = $bodydata['password'];
+        $res = null;
 
         $model = new User;
         $data = $model->validateUser($email, $password);
 
-        if ($data != null) {
-
+        if ($data && $data->active == 1) {
             $auth_key = $model->generateAuthToken("abcdef0123456789", '50');
             $model->saveAuthToken($data->id, $auth_key);
-            return ["Su token de autenticacion es" => $auth_key];
+            $res = ["Su token de autenticacion es" => $auth_key];
+        } elseif ($data && $data->active == 0) {
+            $res = ["Por favor active su cuenta antes de utilizar CSIRT API. Correo de verificación enviado a: $data->email"];
         } else {
-            return ["Credenciales Invalidas"];
+            $res = ["Credenciales Invalidas"];
         }
 
+        return $res;
     }
 
 
