@@ -4,9 +4,6 @@ namespace app\controllers;
 
 use app\models\FormRegister;
 use app\models\User;
-use Swift_Plugins_LoggerPlugin;
-use Swift_Plugins_Loggers_ArrayLogger;
-use Swift_Plugins_Loggers_EchoLogger;
 use Yii;
 use yii\filters\AccessControl;
 use yii\web\Controller;
@@ -177,7 +174,7 @@ class SiteController extends Controller
                 $table->password = crypt($model->password, Yii::$app->params["salt"]);
 
                 //Si el registro es guardado correctamente
-                if (!$table->insert()) {
+                if ($table->insert()) {
                     //Nueva consulta para obtener el id del usuario
                     //Para confirmar al usuario se requiere su id y su authKey
                     $user = $table->find()->where(["email" => $model->email])->one();
@@ -194,7 +191,7 @@ class SiteController extends Controller
                     $this->redirect(['site/message?email=' . $table->email]);
 
                 } else {
-                    echo '<script type="text/javascript">alert("Ha ocurrido un error al llevar a cabo tu registro");</script>';
+                    Yii::$app->session->setFlash('error', 'Ha ocurrido un error al realizar su registro por favor intente más tarde.');
                 }
             } else {
                 $model->getErrors();
@@ -211,11 +208,11 @@ class SiteController extends Controller
 
         if ($user && $user->active == 0) {
             $user->updateAttributes(['active' => 1]);
-            $message = 'Su cuenta <b style="color: #0a73bb">' . $user->email . '</b> ha sido verificada exitosamente';
+            $message = 'Su cuenta <b style="color: #0a73bb">' . $user->email . '</b> ha sido verificada exitosamente.';
         } else if ($user && $user->active == 1) {
-            $message = 'Su cuenta <b style="color: #0a73bb">' . $user->email . '</b> ya ha sido verificada exitosamente';
+            $message = 'Su cuenta <b style="color: #0a73bb">' . $user->email . '</b> ya ha sido verificada exitosamente.';
         } else {
-            $message = 'No se ha podido verificar su cuenta';
+            $message = 'No se ha podido verificar su cuenta.';
         }
         return $this->render('verification', ['message' => $message]);
     }

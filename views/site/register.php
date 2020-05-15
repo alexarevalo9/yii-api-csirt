@@ -5,6 +5,7 @@ use yii\bootstrap\ActiveForm;
 
 $this->title = 'Register';
 $this->params['breadcrumbs'][] = $this->title;
+
 ?>
     <h1>Registro</h1>
     <p>Please fill out the following fields to register:</p>

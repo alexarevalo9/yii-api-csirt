@@ -1,9 +1,11 @@
 <?php
 
 /* @var $this \yii\web\View */
+
 /* @var $content string */
 
 use app\widgets\Alert;
+use lo\modules\noty\Wrapper;
 use yii\helpers\Html;
 use yii\bootstrap\Nav;
 use yii\bootstrap\NavBar;
@@ -43,7 +45,7 @@ AppAsset::register($this);
             ['label' => 'Contact', 'url' => ['/site/contact']],
             ['label' => 'Register', 'url' => ['/site/register']],
             Yii::$app->user->isGuest ? (
-                ['label' => 'Login', 'url' => ['/site/login']]
+            ['label' => 'Login', 'url' => ['/site/login']]
             ) : (
                 '<li>'
                 . Html::beginForm(['/site/logout'], 'post')
@@ -57,6 +59,30 @@ AppAsset::register($this);
         ],
     ]);
     NavBar::end();
+
+    echo Wrapper::widget([
+        'layerClass' => 'lo\modules\noty\layers\Noty',
+        'layerOptions' => [
+            // for every layer (by default)
+            'layerId' => 'noty-layer',
+            'customTitleDelimiter' => '|',
+            'overrideSystemConfirm' => true,
+            'showTitle' => false,
+
+            // for custom layer
+            'registerAnimateCss' => true,
+            'registerButtonsCss' => true
+        ],
+
+        // clientOptions
+        'options' => [
+            'dismissQueue' => true,
+            'layout' => 'topRight',
+            'timeout' => 5000,
+            'theme' => 'metroui',
+            //metroui, relax
+        ],
+    ]);
     ?>
 
     <div class="container">
