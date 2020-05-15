@@ -9,7 +9,7 @@ $config = [
     'bootstrap' => ['log'],
     'aliases' => [
         '@bower' => '@vendor/bower-asset',
-        '@npm'   => '@vendor/npm-asset',
+        '@npm' => '@vendor/npm-asset',
     ],
     'modules' => [
         'v1' => [
@@ -49,7 +49,18 @@ $config = [
             // send all mails to a file by default. You have to set
             // 'useFileTransport' to false and configure a transport
             // for the mailer to send real emails.
+            'transport' => [
+                'class' => 'Swift_SmtpTransport',
+                'encryption' => 'tls',
+                'host' => 'smtp-mail.outlook.com',
+                'port' => '587',
+                'username' => 'csirtcediatest2@outlook.com',
+                'password' => 'metallica2018',
+//                'username' => Yii::$app->params['adminEmail'],
+//                'password' => Yii::$app->params['passwordEmail'],
+            ],
             'useFileTransport' => true,
+
         ],
         'log' => [
             'traceLevel' => YII_DEBUG ? 3 : 0,
@@ -60,7 +71,6 @@ $config = [
                 ],
             ],
         ],
-
 
 
         'db' => $db,
@@ -78,8 +88,8 @@ $config = [
                 [
                     'class' => 'yii\rest\UrlRule',
                     'controller' => 'user',
-                    'extraPatterns'=>[
-                        'POST login'=>'login',
+                    'extraPatterns' => [
+                        'POST login' => 'login',
                     ],
                     'pluralize' => false,
                 ],

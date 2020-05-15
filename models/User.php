@@ -23,10 +23,11 @@ class User extends ActiveRecord implements IdentityInterface
     public function rules()
     {
         return [
-            [['status'], 'integer'],
             [['username'], 'string', 'max' => 50],
             [['email'], 'string', 'max' => 80],
-            [['password', 'auth_key', 'access_token', 'created_at', 'updated_at'], 'string', 'max' => 250],
+            [['password', 'auth_key'], 'string', 'max' => 250],
+            [['email_hash'], 'string', 'max' => 50],
+            [['active'], 'integer'],
         ];
     }
 
@@ -41,10 +42,8 @@ class User extends ActiveRecord implements IdentityInterface
             'email' => 'Email',
             'password' => 'Password',
             'auth_key' => 'Auth Key',
-            'access_token' => 'Access Token',
-            'status' => 'Status',
-            'created_at' => 'Created At',
-            'updated_at' => 'Updated At',
+            'hash' => 'Hash',
+            'active' => 'Active',
         ];
     }
 

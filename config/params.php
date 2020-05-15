@@ -1,8 +1,8 @@
 <?php
 
 return [
-    'adminEmail' => 'admin@example.com',
-    'senderEmail' => 'noreply@example.com',
-    'senderName' => 'Example.com mailer',
+    'adminEmail' => 'arevaloalex9@hotmail.com',
+    'passwordEmail' => 'metallica2012',
+    'apiurl' => '',
     'salt'=>'$1$metmusle$' //MD5
 ];
