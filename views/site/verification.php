@@ -3,10 +3,10 @@
 
 use yii\helpers\Html;
 
-$this->title = 'Verification';
+$this->title = 'Verificación';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="site-about">
-    <h1><?= Html::encode($this->title) ?></h1><br>
+    <h1><?= Html::encode($this->title) ?> de Correo</h1><br>
     <h4><?= $message; ?></h4>
 </div>

@@ -4,12 +4,12 @@
 use yii\helpers\Html;
 use yii\bootstrap\ActiveForm;
 
-$this->title = 'Register';
+$this->title = 'Registro';
 $this->params['breadcrumbs'][] = $this->title;
 
 ?>
     <h1>Registro</h1>
-    <p>Please fill out the following fields to register:</p>
+    <p>Complete los siguientes campos para registrarse:</p>
     <h4><?= $msg; ?></h4>
 
 <?php $form = ActiveForm::begin([
@@ -41,7 +41,7 @@ $this->params['breadcrumbs'][] = $this->title;
     </div>
     <div class="form-group">
         <div class="col-lg-offset-1 col-lg-13">
-            <?= Html::submitButton("Register", ["class" => "btn btn-primary"]) ?>
+            <?= Html::submitButton("Registrarse", ["class" => "btn btn-primary"]) ?>
         </div>
     </div>
 <?php $form->end() ?>
