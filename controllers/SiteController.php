@@ -73,7 +73,7 @@ class SiteController extends Controller
 
         $model = new LoginForm();
         if ($model->load(Yii::$app->request->post()) && $model->login()) {
-            return $this->goBack();
+            return $this->redirect(['site/documentation']);
         }
 
         $model->password = '';
@@ -164,9 +164,9 @@ class SiteController extends Controller
 
         if ($user && $user->active == 0) {
             $user->updateAttributes(['active' => 1]);
-            $message = 'Su cuenta <b style="color: #0a73bb">' . $user->email . '</b> ha sido verificada exitosamente.';
+            $message = 'Su cuenta <b style="color: #0a73bb">' . $user->email . '</b> ha sido verificada exitosamente. Ahora puedes <a href="/site/login">iniciar sesión</a> en con cuenta.';
         } else if ($user && $user->active == 1) {
-            $message = 'Su cuenta <b style="color: #0a73bb">' . $user->email . '</b> ya ha sido verificada exitosamente.';
+            $message = 'Su cuenta <b style="color: #0a73bb">' . $user->email . '</b> ya ha sido verificada exitosamente. Ahora puedes <a href="/site/login">iniciar sesión</a> en con cuenta.';
         } else {
             $message = 'No se ha podido verificar su cuenta.';
         }
@@ -182,7 +182,7 @@ class SiteController extends Controller
         $msg = null;
 
         $user = $table->find()->where(["email" => $email])->one();
-        $user && $user->active == 0 ? $msg = 'Se ha enviado un correo de verificación a <b style="color: #0a73bb">' . $user->email . '</b> por favor revisar su correo electrónico.' : $this->redirect(['/']);;
+        $user && $user->active == 0 ? $msg = 'Se ha enviado un correo de verificación a: <b style="color: #0a73bb">' . $user->email . '</b>. Por favor revisar su bandeja de entrada.' : $this->redirect(['/']);;
 
         return $this->render('message', ['message' => $msg]);
     }

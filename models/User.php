@@ -115,15 +115,15 @@ class User extends ActiveRecord implements IdentityInterface
         }
     }
 
-    public static function findByUsername($email)
+    public static function findByEmail($email)
     {
         $user = static::findOne(["email" => $email]);
         return $user ? $user : null;
     }
 
-    public static function validatePassword($password){
+    public static function validatePassword($email, $password){
         $cryptpassword = crypt($password, Yii::$app->params["salt"]);
-        $user = static::findOne(["password" => $cryptpassword]);
+        $user = static::findOne(["email" => $email, "password" => $cryptpassword]);
         return $user ? true : false;
     }
 

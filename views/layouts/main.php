@@ -40,10 +40,10 @@ AppAsset::register($this);
     echo Nav::widget([
         'options' => ['class' => 'navbar-nav navbar-right'],
         'items' => [
-            ['label' => 'Home', 'url' => ['/site/index']],
-            ['label' => 'Register', 'url' => ['/site/register']],
-            Yii::$app->user->isGuest ? (['label' => '', 'options'=>['style'=>'display:none;']]) : (['label' => 'Documentation', 'url' => ['/site/documentation']]),
-            Yii::$app->user->isGuest ? (['label' => 'Login', 'url' => ['/site/login']]) : (['label' => 'Logout (' . Yii::$app->user->identity->username . ')', 'url' => ['/site/logout']])
+            ['label' => 'Inicio', 'url' => ['/site/index']],
+            Yii::$app->user->isGuest ? (['label' => 'Registro', 'url' => ['/site/register']]) : (['label' => '', 'options' => ['style' => 'display:none;']]),
+            Yii::$app->user->isGuest ? (['label' => '', 'options' => ['style' => 'display:none;']]) : (['label' => 'Documentación', 'url' => ['/site/documentation']]),
+            Yii::$app->user->isGuest ? (['label' => 'Iniciar Sesión', 'url' => ['/site/login']]) : (['label' => 'Cerrar Sesión (' . Yii::$app->user->identity->username . ')', 'url' => ['/site/logout']])
         ],
     ]);
     NavBar::end();
@@ -75,6 +75,10 @@ AppAsset::register($this);
 
     <div class="container">
         <?= Breadcrumbs::widget([
+            'homeLink' => [
+                'label' => Yii::t('yii', 'Inicio'),
+                'url' => Yii::$app->homeUrl,
+            ],
             'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [],
         ]) ?>
         <?= Alert::widget() ?>
@@ -84,9 +88,7 @@ AppAsset::register($this);
 
 <footer class="footer">
     <div class="container">
-        <p class="pull-left">&copy; My Company <?= date('Y') ?></p>
-
-        <p class="pull-right"><?= Yii::powered() ?></p>
+        <p class="pull-left">&copy; CSIRT EC <?= date('Y') ?></p>
     </div>
 </footer>
 
