@@ -31,12 +31,6 @@ class SiteController extends Controller
                     ],
                 ],
             ],
-            'verbs' => [
-                'class' => VerbFilter::className(),
-                'actions' => [
-                    'logout' => ['post'],
-                ],
-            ],
         ];
     }
 
@@ -191,6 +185,14 @@ class SiteController extends Controller
         $user && $user->active == 0 ? $msg = 'Se ha enviado un correo de verificación a <b style="color: #0a73bb">' . $user->email . '</b> por favor revisar su correo electrónico.' : $this->redirect(['/']);;
 
         return $this->render('message', ['message' => $msg]);
+    }
+
+    /**
+     * Displays Message Page.
+     */
+    public function actionDocumentation()
+    {
+        return Yii::$app->user->isGuest ? ($this->redirect(['/'])) : ($this->render('documentation'));
     }
 
     /**

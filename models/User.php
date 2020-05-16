@@ -9,6 +9,8 @@ use yii\web\IdentityInterface;
 
 class User extends ActiveRecord implements IdentityInterface
 {
+
+    public $expire_at = 3442;
     /**
      * @return string the name of the db table associated with this model class.
      */
@@ -113,6 +115,17 @@ class User extends ActiveRecord implements IdentityInterface
         }
     }
 
+    public static function findByUsername($email)
+    {
+        $user = static::findOne(["email" => $email]);
+        return $user ? $user : null;
+    }
+
+    public static function validatePassword($password){
+        $cryptpassword = crypt($password, Yii::$app->params["salt"]);
+        $user = static::findOne(["password" => $cryptpassword]);
+        return $user ? true : false;
+    }
 
     /**
      * Generate authentication token
@@ -140,8 +153,4 @@ class User extends ActiveRecord implements IdentityInterface
         $user->auth_key = $authToken;
         $user->update();
     }
-
-
-
-
 }

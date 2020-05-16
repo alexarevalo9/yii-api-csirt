@@ -69,7 +69,7 @@ class LoginForm extends Model
         if ($this->validate()) {
             //return Yii::$app->user->login($this->getUser(), $this->rememberMe ? 3600 * 24 * 30 : 0);
             if ($this->getUser()) {
-                $access_token = $this->user->generateAccessToken();
+                $access_token = md5(rand(0, 1000));
                 $this->user->expire_at = time() + static::EXPIRE_TIME;
                 $this->user->save();
                 Yii::$app->user->login($this->user, static::EXPIRE_TIME);

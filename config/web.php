@@ -27,7 +27,7 @@ $config = [
     'components' => [
         'request' => [
             // !!! insert a secret key in the following (if it is empty) - this is required by cookie validation
-            //'cookieValidationKey' => 'WwKZzWapocURwZmPPw-dCP50w0UcxKmw',
+            'cookieValidationKey' => 'WwKZzWapocURwZmPPw-dCP50w0UcxKmw',
             'parsers' => [
                 'application/json' => 'yii\web\JsonParser',
             ],
@@ -39,8 +39,6 @@ $config = [
         ],
         'user' => [
             'identityClass' => 'app\models\User',
-            'enableSession' => false,
-            //'loginUrl' => null
             'enableAutoLogin' => true
         ],
         'errorHandler' => [
