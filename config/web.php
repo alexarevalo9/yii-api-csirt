@@ -1,5 +1,4 @@
 <?php
-
 $params = require __DIR__ . '/params.php';
 $db = require __DIR__ . '/db.php';
 
@@ -49,9 +48,6 @@ $config = [
         ],
         'mailer' => [
             'class' => 'yii\swiftmailer\Mailer',
-            // send all mails to a file by default. You have to set
-            // 'useFileTransport' to false and configure a transport
-            // for the mailer to send real emails.
             'transport' => [
                 'class' => 'Swift_SmtpTransport',
                 'encryption' => 'tls',
@@ -59,9 +55,10 @@ $config = [
                 'port' => '587',
                 'username' => 'arevaloalex9@hotmail.com',
                 'password' => 'metallica2012',
-//                'username' => Yii::$app->params['adminEmail'],
-//                'password' => Yii::$app->params['passwordEmail'],
             ],
+            // send all mails to a file by default. You have to set
+            // 'useFileTransport' to false and configure a transport
+            // for the mailer to send real emails.
             'useFileTransport' => false,
         ],
         'log' => [

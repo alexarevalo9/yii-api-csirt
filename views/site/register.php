@@ -1,4 +1,5 @@
 <?php
+/* @var $msg string that has message from controller */
 
 use yii\helpers\Html;
 use yii\bootstrap\ActiveForm;

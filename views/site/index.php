@@ -2,7 +2,7 @@
 
 /* @var $this yii\web\View */
 
-$this->title = 'Home';
+$this->title = 'CSIRT API';
 ?>
 <div class="site-index">
 

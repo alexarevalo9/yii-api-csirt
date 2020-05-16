@@ -1,5 +1,6 @@
 <?php
 
+/* @var $message string that has message from controller */
 
 use yii\helpers\Html;
 

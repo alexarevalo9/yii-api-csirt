@@ -10,7 +10,6 @@ use yii\web\Controller;
 use yii\web\Response;
 use yii\filters\VerbFilter;
 use app\models\LoginForm;
-use app\models\ContactForm;
 use yii\widgets\ActiveForm;
 
 class SiteController extends Controller
@@ -102,46 +101,6 @@ class SiteController extends Controller
     }
 
     /**
-     * Displays contact page.
-     *
-     * @return Response|string
-     */
-//    public function actionContact()
-//    {
-//        $model = new ContactForm();
-//        if ($model->load(Yii::$app->request->post()) && $model->contact(Yii::$app->params['adminEmail'])) {
-//            Yii::$app->session->setFlash('contactFormSubmitted');
-//
-//            return $this->refresh();
-//        }
-//        return $this->render('contact', [
-//            'model' => $model,
-//        ]);
-//    }
-
-    /**
-     * Displays about page.
-     *
-     * @return string
-     */
-//    public function actionAbout()
-//    {
-//        return $this->render('about');
-//    }
-
-    private function randKey($str = '', $long = 0)
-    {
-        $key = null;
-        $str = str_split($str);
-        $start = 0;
-        $limit = count($str) - 1;
-        for ($x = 0; $x < $long; $x++) {
-            $key .= $str[rand($start, $limit)];
-        }
-        return $key;
-    }
-
-    /**
      * Displays Register Page.
      */
     public function actionRegister()
@@ -200,6 +159,9 @@ class SiteController extends Controller
         return $this->render("register", ["model" => $model, "msg" => $msg]);
     }
 
+    /**
+     * Displays Verification Page.
+     */
     public function actionVerification($email, $hash)
     {
         $table = new User;
@@ -217,6 +179,9 @@ class SiteController extends Controller
         return $this->render('verification', ['message' => $message]);
     }
 
+    /**
+     * Displays Message Page.
+     */
     public function actionMessage($email)
     {
         $table = new User;
@@ -228,27 +193,23 @@ class SiteController extends Controller
         return $this->render('message', ['message' => $msg]);
     }
 
+    /**
+     * Method that allows to send a verification email .
+     */
     protected function sendEmail($email, $username, $hash)
     {
-        $message = '<div align="center" style="border-style:solid; border-width:thin; border-color:#dadce0; border-radius:8px; padding:40px 20px; width: 600px">' .
-            '<h1 style="color: #000000">Por favor verifique su correo electrónico</h1>' .
-            '<h2 style="color: #000000">Saludos ' . $username . ',</h2>' .
-            '<h3 style="color: #000000">Necesitamos verificar su dirección de correo electrónico antes de activar su cuenta en CSIRT API.</h3>' . '<br><br>' .
-            '<div>' .
-            '<a style=\'background-color:#447fb4;color:#ffffff;display:inline-block;line-height:44px;text-align:center;text-decoration:none;width:180px;border-radius:4px\'
-                            target=\'_blank\' href=\'http://csirt-api.test/site/verification?email=' . $email . '&hash=' . $hash . '\'>
-                            VERIFICAR
-                            </a>' .
-            '</div>' . '<br><br>' .
-            '<p align="center">Enlace de Verificación: <a href="http://csirt-api.test/site/verification?email=' . $email . '&hash=' . $hash . '">http://csirt-api.test/site/verification?email=' . $email . '&hash=' . $hash . '</a></p>' .
-            '</div>';
-        //Yii::$app->params['adminEmail']
+        Yii::$app->mailer->getView()->params['email'] = $email;
+        Yii::$app->mailer->getView()->params['username'] = $username;
+        Yii::$app->mailer->getView()->params['hash'] = $hash;
 
-        Yii::$app->mailer->compose()
-            ->setFrom('arevaloalex9@hotmail.com')
+        Yii::$app->mailer->compose('layouts/html')
+            ->setFrom(Yii::$app->params["adminEmail"])
             ->setTo($email)
             ->setSubject('Verifique su correo electrónico CSIRT API')
-            ->setHtmlBody($message)
             ->send();
+
+        Yii::$app->mailer->getView()->params['email'] = null;
+        Yii::$app->mailer->getView()->params['username'] = null;
+        Yii::$app->mailer->getView()->params['hash'] = null;
     }
 }
