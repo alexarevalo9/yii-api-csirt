@@ -1,4 +1,4 @@
-<?php
+<?php /** @noinspection PhpPossiblePolymorphicInvocationInspection */
 
 namespace app\controllers;
 
@@ -8,7 +8,6 @@ use Yii;
 use yii\filters\AccessControl;
 use yii\web\Controller;
 use yii\web\Response;
-use yii\filters\VerbFilter;
 use app\models\LoginForm;
 use yii\widgets\ActiveForm;
 
@@ -128,11 +127,6 @@ class SiteController extends Controller
 
                 //Si el registro es guardado correctamente
                 if ($table->insert()) {
-                    //Nueva consulta para obtener el id del usuario
-                    //Para confirmar al usuario se requiere su id y su authKey
-                    $user = $table->find()->where(["email" => $model->email])->one();
-                    $id = urlencode($user->id);
-                    $authKey = urlencode($user->authKey);
 
                     $this->sendEmail($table->email, $table->username, $table->email_hash);
 
@@ -155,6 +149,9 @@ class SiteController extends Controller
 
     /**
      * Displays Verification Page.
+     * @param $email
+     * @param $hash
+     * @return string
      */
     public function actionVerification($email, $hash)
     {
@@ -175,6 +172,8 @@ class SiteController extends Controller
 
     /**
      * Displays Message Page.
+     * @param $email
+     * @return string
      */
     public function actionMessage($email)
     {
@@ -182,7 +181,7 @@ class SiteController extends Controller
         $msg = null;
 
         $user = $table->find()->where(["email" => $email])->one();
-        $user && $user->active == 0 ? $msg = 'Se ha enviado un correo de verificación a: <b style="color: #0a73bb">' . $user->email . '</b>. Por favor revisar su bandeja de entrada.' : $this->redirect(['/']);;
+        $user && $user->active == 0 ? $msg = 'Se ha enviado un correo de verificación a: <b style="color: #0a73bb">' . $user->email . '</b>. Por favor revisar su bandeja de entrada.' : $this->redirect(['/']);
 
         return $this->render('message', ['message' => $msg]);
     }
@@ -197,6 +196,9 @@ class SiteController extends Controller
 
     /**
      * Method that allows to send a verification email .
+     * @param $email
+     * @param $username
+     * @param $hash
      */
     protected function sendEmail($email, $username, $hash)
     {

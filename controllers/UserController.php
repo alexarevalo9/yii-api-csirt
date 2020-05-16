@@ -1,30 +1,36 @@
 <?php
-
-
+/* @active
+*/
 namespace app\controllers;
 
 use app\models\User;
 use Yii;
+use yii\filters\VerbFilter;
 use yii\rest\ActiveController;
 
 class UserController extends ActiveController
 {
     public $modelClass = 'app\models\User';
 
-    public function actions()
+    /**
+     * {@inheritdoc}
+     */
+    public function behaviors()
     {
-        $action = parent::actions();
-        unset($action['index']);
-        unset($action['create']);
-        unset($action['update']);
-        unset($action['delete']);
-        unset($action['login']);
+        $behaviors = parent::behaviors();
+
+        $behaviors['verbs'] = [
+            'class' => VerbFilter::className(),
+            'actions' => [
+                'login' => ['POST']
+            ],
+        ];
+
+        return $behaviors;
     }
 
     /**
      * User Login
-     * @param string $email
-     * @param string $password
      * @return array
      */
     public function actionLogin()
@@ -49,6 +55,5 @@ class UserController extends ActiveController
 
         return $res;
     }
-
 
 }

@@ -9,8 +9,8 @@ use yii\web\IdentityInterface;
 
 class User extends ActiveRecord implements IdentityInterface
 {
-
     public $expire_at = 3442;
+
     /**
      * @return string the name of the db table associated with this model class.
      */
@@ -89,7 +89,6 @@ class User extends ActiveRecord implements IdentityInterface
      * Find a user by their unique id
      *
      * @param string $id
-     * return app\models\User
      * @return User|null
      */
     public static function findIdentity($id)
@@ -102,7 +101,7 @@ class User extends ActiveRecord implements IdentityInterface
      *
      * @param string $email
      * @param string $password
-     * @return bool
+     * @return User|null
      */
     public function validateUser($email, $password)
     {
@@ -115,13 +114,27 @@ class User extends ActiveRecord implements IdentityInterface
         }
     }
 
+    /**
+     * Find User by email
+     *
+     * @param string $email
+     * @return User|null
+     */
     public static function findByEmail($email)
     {
         $user = static::findOne(["email" => $email]);
         return $user ? $user : null;
     }
 
-    public static function validatePassword($email, $password){
+    /**
+     * Validate password
+     *
+     * @param string $email
+     * @param string $password
+     * @return true|false
+     */
+    public static function validatePassword($email, $password)
+    {
         $cryptpassword = crypt($password, Yii::$app->params["salt"]);
         $user = static::findOne(["email" => $email, "password" => $cryptpassword]);
         return $user ? true : false;
@@ -147,6 +160,12 @@ class User extends ActiveRecord implements IdentityInterface
         return $authToken;
     }
 
+    /**
+     * Save authentication token
+     *
+     * @param string $id
+     * @param string $authToken
+     */
     public function saveAuthToken($id, $authToken)
     {
         $user = static::findOne($id);
