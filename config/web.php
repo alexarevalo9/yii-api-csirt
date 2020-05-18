@@ -1,5 +1,4 @@
 <?php
-
 $params = require __DIR__ . '/params.php';
 $db = require __DIR__ . '/db.php';
 
@@ -9,7 +8,21 @@ $config = [
     'bootstrap' => ['log'],
     'aliases' => [
         '@bower' => '@vendor/bower-asset',
-        '@npm'   => '@vendor/npm-asset',
+        '@npm' => '@vendor/npm-asset',
+    ],
+    'modules' => [
+        'v1' => [
+            'basePath' => '@app/modules/v1',
+            'class' => 'app\modules\v1\Module',
+        ],
+
+        'gii' => [
+            'class' => 'yii\gii\Module',
+            'allowedIPs' => ['127.0.0.1', '::1', '192.168.0.*', '192.168.178.20'] // adjust this to your needs
+        ],
+        'noty' => [
+            'class' => 'lo\modules\noty\Module',
+        ],
     ],
     'components' => [
         'request' => [
@@ -25,8 +38,7 @@ $config = [
             'class' => 'yii\caching\FileCache',
         ],
         'user' => [
-            'identityClass' => 'app\models\Csirt',
-            'enableSession' => false,
+            'identityClass' => 'app\models\User',
             'enableAutoLogin' => true
         ],
         'errorHandler' => [
@@ -34,6 +46,14 @@ $config = [
         ],
         'mailer' => [
             'class' => 'yii\swiftmailer\Mailer',
+            'transport' => [
+                'class' => 'Swift_SmtpTransport',
+                'encryption' => 'tls',
+                'host' => 'smtp-mail.outlook.com',
+                'port' => '587',
+                'username' => 'arevaloalex9@hotmail.com',
+                'password' => 'metallica2012',
+            ],
             // send all mails to a file by default. You have to set
             // 'useFileTransport' to false and configure a transport
             // for the mailer to send real emails.
@@ -49,18 +69,27 @@ $config = [
             ],
         ],
 
+
         'db' => $db,
 
         'urlManager' => [
             'enablePrettyUrl' => true,
-            'enableStrictParsing' => true,
+            //'enableStrictParsing' => true,
             'showScriptName' => false,
             'rules' => [
                 [
                     'class' => 'yii\rest\UrlRule',
-                    'controller' => ['csirt'],
+                    'controller' => ['v1/csirt'],
                     'pluralize' => false,
-                ]
+                ],
+                [
+                    'class' => 'yii\rest\UrlRule',
+                    'controller' => 'user',
+                    'extraPatterns' => [
+                        'POST login' => 'login',
+                    ],
+                    'pluralize' => false,
+                ],
             ],
         ],
 

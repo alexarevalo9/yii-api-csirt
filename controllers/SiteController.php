@@ -1,14 +1,15 @@
-<?php
+<?php /** @noinspection PhpPossiblePolymorphicInvocationInspection */
 
 namespace app\controllers;
 
+use app\models\FormRegister;
+use app\models\User;
 use Yii;
 use yii\filters\AccessControl;
 use yii\web\Controller;
 use yii\web\Response;
-use yii\filters\VerbFilter;
 use app\models\LoginForm;
-use app\models\ContactForm;
+use yii\widgets\ActiveForm;
 
 class SiteController extends Controller
 {
@@ -27,12 +28,6 @@ class SiteController extends Controller
                         'allow' => true,
                         'roles' => ['@'],
                     ],
-                ],
-            ],
-            'verbs' => [
-                'class' => VerbFilter::className(),
-                'actions' => [
-                    'logout' => ['post'],
                 ],
             ],
         ];
@@ -77,7 +72,7 @@ class SiteController extends Controller
 
         $model = new LoginForm();
         if ($model->load(Yii::$app->request->post()) && $model->login()) {
-            return $this->goBack();
+            return $this->redirect(['site/documentation']);
         }
 
         $model->password = '';
@@ -99,31 +94,126 @@ class SiteController extends Controller
     }
 
     /**
-     * Displays contact page.
-     *
-     * @return Response|string
+     * Displays Register Page.
      */
-    public function actionContact()
+    public function actionRegister()
     {
-        $model = new ContactForm();
-        if ($model->load(Yii::$app->request->post()) && $model->contact(Yii::$app->params['adminEmail'])) {
-            Yii::$app->session->setFlash('contactFormSubmitted');
+        //Creamos la instancia con el model de validación
+        $model = new FormRegister;
 
-            return $this->refresh();
+        //Mostrará un mensaje en la vista cuando el usuario se haya registrado
+        $msg = null;
+
+        //Validación mediante ajax
+        if ($model->load(Yii::$app->request->post()) && Yii::$app->request->isAjax) {
+            Yii::$app->response->format = Response::FORMAT_JSON;
+            return ActiveForm::validate($model);
         }
-        return $this->render('contact', [
-            'model' => $model,
-        ]);
+
+        //Validación cuando el formulario es enviado vía post
+        //Esto sucede cuando la validación ajax se ha llevado a cabo correctamente
+        //También previene por si el usuario tiene desactivado javascript y la
+        //validación mediante ajax no puede ser llevada a cabo
+        if ($model->load(Yii::$app->request->post())) {
+            if ($model->validate()) {
+                //Preparamos la consulta para guardar el usuario
+                $table = new User;
+                $table->username = $model->username;
+                $table->email = $model->email;
+                $table->email_hash = md5(rand(0, 1000));
+
+                //Encriptamos el password
+                $table->password = crypt($model->password, Yii::$app->params["salt"]);
+
+                //Si el registro es guardado correctamente
+                if ($table->insert()) {
+
+                    $this->sendEmail($table->email, $table->username, $table->email_hash);
+
+                    $model->username = null;
+                    $model->email = null;
+                    $model->password = null;
+                    $model->password_repeat = null;
+
+                    $this->redirect(['site/message?email=' . $table->email]);
+
+                } else {
+                    Yii::$app->session->setFlash('error', 'Ha ocurrido un error al realizar su registro por favor intente más tarde.');
+                }
+            } else {
+                $model->getErrors();
+            }
+        }
+        return $this->render("register", ["model" => $model, "msg" => $msg]);
     }
 
     /**
-     * Displays about page.
-     *
+     * Displays Verification Page.
+     * @param $email
+     * @param $hash
      * @return string
      */
-    public function actionAbout()
+    public function actionVerification($email, $hash)
     {
-        return $this->render('about');
+        $table = new User;
+        $message = null;
+        $user = $table->find()->where(["email" => $email, "email_hash" => $hash])->one();
+
+        if ($user && $user->active == 0) {
+            $user->updateAttributes(['active' => 1]);
+            $message = 'Su cuenta <b style="color: #0a73bb">' . $user->email . '</b> ha sido verificada exitosamente. Ahora puedes <a href="/site/login">iniciar sesión</a> en con cuenta.';
+        } else if ($user && $user->active == 1) {
+            $message = 'Su cuenta <b style="color: #0a73bb">' . $user->email . '</b> ya ha sido verificada exitosamente. Ahora puedes <a href="/site/login">iniciar sesión</a> en con cuenta.';
+        } else {
+            $message = 'No se ha podido verificar su cuenta.';
+        }
+        return $this->render('verification', ['message' => $message]);
     }
 
+    /**
+     * Displays Message Page.
+     * @param $email
+     * @return string
+     */
+    public function actionMessage($email)
+    {
+        $table = new User;
+        $msg = null;
+
+        $user = $table->find()->where(["email" => $email])->one();
+        $user && $user->active == 0 ? $msg = 'Se ha enviado un correo de verificación a: <b style="color: #0a73bb">' . $user->email . '</b>. Por favor revisar su bandeja de entrada.' : $this->redirect(['/']);
+
+        return $this->render('message', ['message' => $msg]);
+    }
+
+    /**
+     * Displays Message Page.
+     */
+    public function actionDocumentation()
+    {
+        return Yii::$app->user->isGuest ? ($this->redirect(['/'])) : ($this->render('documentation'));
+    }
+
+    /**
+     * Method that allows to send a verification email .
+     * @param $email
+     * @param $username
+     * @param $hash
+     */
+    protected function sendEmail($email, $username, $hash)
+    {
+        Yii::$app->mailer->getView()->params['email'] = $email;
+        Yii::$app->mailer->getView()->params['username'] = $username;
+        Yii::$app->mailer->getView()->params['hash'] = $hash;
+
+        Yii::$app->mailer->compose('layouts/html')
+            ->setFrom(Yii::$app->params["adminEmail"])
+            ->setTo($email)
+            ->setSubject('Verifique su correo electrónico CSIRT API')
+            ->send();
+
+        Yii::$app->mailer->getView()->params['email'] = null;
+        Yii::$app->mailer->getView()->params['username'] = null;
+        Yii::$app->mailer->getView()->params['hash'] = null;
+    }
 }

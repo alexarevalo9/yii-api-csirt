@@ -1,37 +1,37 @@
 <?php
 
-namespace app\models;
+namespace app\modules\v1\models;
 
 use Yii;
+use yii\db\ActiveRecord;
 use yii\helpers\Console;
 use yii\web\IdentityInterface;
 
 /**
  * This is the model class for table "wp_mapa_csirt".
  *
- * @property int $id
+ * @property string $token
  * @property string $nombreCsirt
  * @property string $direccion
  * @property string $telefono
  * @property string $email
- * @property string $gpgEmail
- * @property string $comunidadObj
- * @property string $sitioWeb
+ * @property string|null $gpgEmail
+ * @property string|null $comunidadObj
+ * @property string|null $sitioWeb
  * @property string $horario
- * @property string $nombreReprePrincipal
- * @property string $telefonoReprePrincipal
- * @property string $correoReprePrincipal
- * @property string $GPGReprePrincipal
- * @property string $nombreRepreAlterno
- * @property string $telefonoRepreAlterno
- * @property string $correoRepreAlterno
- * @property string $GPGRepreAlterno
+ * @property string|null $nombreReprePrincipal
+ * @property string|null $telefonoReprePrincipal
+ * @property string|null $correoReprePrincipal
+ * @property string|null $GPGReprePrincipal
+ * @property string|null $nombreRepreAlterno
+ * @property string|null $telefonoRepreAlterno
+ * @property string|null $correoRepreAlterno
+ * @property string|null $GPGRepreAlterno
  * @property string|null $mensajeOpc
  * @property string $latitud
  * @property string $longitud
- * @property string $token
  */
-class Csirt extends \yii\db\ActiveRecord implements IdentityInterface
+class Csirt extends ActiveRecord implements IdentityInterface
 {
     /**
      * {@inheritdoc}
@@ -47,23 +47,21 @@ class Csirt extends \yii\db\ActiveRecord implements IdentityInterface
     public function rules()
     {
         return [
-            [['nombreCsirt', 'direccion', 'telefono', 'email', 'gpgEmail', 'comunidadObj', 'sitioWeb', 'horario', 'nombreReprePrincipal', 'telefonoReprePrincipal', 'correoReprePrincipal', 'GPGReprePrincipal', 'nombreRepreAlterno', 'telefonoRepreAlterno', 'correoRepreAlterno', 'GPGRepreAlterno', 'latitud', 'longitud', 'token'], 'required'],
-            [['nombreCsirt', 'email', 'horario', 'latitud', 'longitud'], 'string', 'max' => 50],
-            [['direccion', 'gpgEmail', 'comunidadObj', 'sitioWeb', 'nombreReprePrincipal', 'correoReprePrincipal', 'GPGReprePrincipal', 'nombreRepreAlterno', 'correoRepreAlterno', 'GPGRepreAlterno'], 'string', 'max' => 100],
-            [['telefono', 'telefonoReprePrincipal', 'telefonoRepreAlterno'], 'string', 'max' => 20],
-            [['mensajeOpc', 'token'], 'string', 'max' => 500],
+            [['token', 'nombreCsirt', 'direccion', 'telefono', 'email', 'horario', 'latitud', 'longitud'], 'required'],
+            [['token', 'latitud', 'longitud'], 'string', 'max' => 50],
+            [['nombreCsirt', 'telefono', 'email', 'gpgEmail', 'sitioWeb', 'horario', 'nombreReprePrincipal', 'telefonoReprePrincipal', 'correoReprePrincipal', 'GPGReprePrincipal', 'nombreRepreAlterno', 'telefonoRepreAlterno', 'correoRepreAlterno', 'GPGRepreAlterno'], 'string', 'max' => 100],
+            [['direccion', 'comunidadObj', 'mensajeOpc'], 'string', 'max' => 500],
+            [['token'], 'unique'],
         ];
     }
 
     /**
      * {@inheritdoc}
      */
-
     public function attributeLabels()
     {
-
         return [
-            'id' => 'ID',
+            'token' => 'Token',
             'nombreCsirt' => 'Nombre Csirt',
             'direccion' => 'Direccion',
             'telefono' => 'Telefono',
@@ -83,17 +81,14 @@ class Csirt extends \yii\db\ActiveRecord implements IdentityInterface
             'mensajeOpc' => 'Mensaje Opc',
             'latitud' => 'Latitud',
             'longitud' => 'Longitud',
-            'token' => 'Token',
         ];
     }
 
-    /*
-    public function fields()
-    {
-        $fields = array_diff(parent::fields(), ['id', '']); //Nunca devuelve id ni token
+    public function fields(){
+        $fields=array_diff(parent::fields(),['token']); //Nunca devuelve el token
         return $fields;
     }
-*/
+
     /**
      * Finds an identity by the given ID.
      *
@@ -113,7 +108,6 @@ class Csirt extends \yii\db\ActiveRecord implements IdentityInterface
      */
     public static function findIdentityByAccessToken($token, $type = null)
     {
-        //echo var_dump(static::findOne(['token' => $token]));
         return static::findOne(['token' => $token]);
     }
 
@@ -141,4 +135,16 @@ class Csirt extends \yii\db\ActiveRecord implements IdentityInterface
     {
         return $this->getAuthKey() === $authKey;
     }
+
+    /**
+     * Find Csirt by token
+     *
+     * @param string $token
+     * @return Csirt|null
+     */
+    public function findCsirt($token)
+    {
+        return static::findOne(["token" => $token]);
+    }
+
 }

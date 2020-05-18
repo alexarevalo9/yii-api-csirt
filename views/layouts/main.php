@@ -1,9 +1,11 @@
 <?php
 
 /* @var $this \yii\web\View */
+
 /* @var $content string */
 
 use app\widgets\Alert;
+use lo\modules\noty\Wrapper;
 use yii\helpers\Html;
 use yii\bootstrap\Nav;
 use yii\bootstrap\NavBar;
@@ -29,7 +31,7 @@ AppAsset::register($this);
 <div class="wrap">
     <?php
     NavBar::begin([
-        'brandLabel' => Yii::$app->name,
+        'brandLabel' => Yii::$app->params['pageName'],
         'brandUrl' => Yii::$app->homeUrl,
         'options' => [
             'class' => 'navbar-inverse navbar-fixed-top',
@@ -38,28 +40,45 @@ AppAsset::register($this);
     echo Nav::widget([
         'options' => ['class' => 'navbar-nav navbar-right'],
         'items' => [
-            ['label' => 'Home', 'url' => ['/site/index']],
-            ['label' => 'About', 'url' => ['/site/about']],
-            ['label' => 'Contact', 'url' => ['/site/contact']],
-            Yii::$app->user->isGuest ? (
-                ['label' => 'Login', 'url' => ['/site/login']]
-            ) : (
-                '<li>'
-                . Html::beginForm(['/site/logout'], 'post')
-                . Html::submitButton(
-                    'Logout (' . Yii::$app->user->identity->username . ')',
-                    ['class' => 'btn btn-link logout']
-                )
-                . Html::endForm()
-                . '</li>'
-            )
+            ['label' => 'Inicio', 'url' => ['/site/index']],
+            Yii::$app->user->isGuest ? (['label' => 'Registro', 'url' => ['/site/register']]) : (['label' => '', 'options' => ['style' => 'display:none;']]),
+            Yii::$app->user->isGuest ? (['label' => '', 'options' => ['style' => 'display:none;']]) : (['label' => 'Documentación', 'url' => ['/site/documentation']]),
+            Yii::$app->user->isGuest ? (['label' => 'Iniciar Sesión', 'url' => ['/site/login']]) : (['label' => 'Cerrar Sesión (' . Yii::$app->user->identity->username . ')', 'url' => ['/site/logout']])
         ],
     ]);
     NavBar::end();
+
+    echo Wrapper::widget([
+        'layerClass' => 'lo\modules\noty\layers\Noty',
+        'layerOptions' => [
+            // for every layer (by default)
+            'layerId' => 'noty-layer',
+            'customTitleDelimiter' => '|',
+            'overrideSystemConfirm' => true,
+            'showTitle' => false,
+
+            // for custom layer
+            'registerAnimateCss' => true,
+            'registerButtonsCss' => true
+        ],
+
+        // clientOptions
+        'options' => [
+            'dismissQueue' => true,
+            'layout' => 'topRight',
+            'timeout' => 5000,
+            'theme' => 'metroui',
+            //metroui, relax
+        ],
+    ]);
     ?>
 
     <div class="container">
         <?= Breadcrumbs::widget([
+            'homeLink' => [
+                'label' => Yii::t('yii', 'Inicio'),
+                'url' => Yii::$app->homeUrl,
+            ],
             'links' => isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [],
         ]) ?>
         <?= Alert::widget() ?>
@@ -69,9 +88,7 @@ AppAsset::register($this);
 
 <footer class="footer">
     <div class="container">
-        <p class="pull-left">&copy; My Company <?= date('Y') ?></p>
-
-        <p class="pull-right"><?= Yii::powered() ?></p>
+        <p class="pull-left">&copy; CSIRT EC <?= date('Y') ?></p>
     </div>
 </footer>
 
